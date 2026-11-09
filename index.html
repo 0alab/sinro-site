@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>志望理由書と面接ノート</title>
+<style>
+/* Layout: 左に質問、右に罫線の下書き用紙。用紙は入力に合わせてその場で書き上がる */
+:root {
+  --bg: #eef2f6;
+  --sheet: #ffffff;
+  --ink: #18263a;
+  --muted: #55657a;
+  --rule: #c7d5e3;
+  --accent: #1e4fa3;
+  --on-accent: #ffffff;
+  --marker: #fff0a0;
+  --ok: #1c7a55;
+  --warn: #a8560c;
+  --font-display: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --font-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --ruled: 2.25rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111822; --sheet: #1a2430; --ink: #e7edf4; --muted: #a2b2c4; --rule: #33465a;
+    --accent: #8db4f5; --on-accent: #10203a; --marker: #5c4e12; --ok: #6cd3a6; --warn: #f2b36b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111822; --sheet: #1a2430; --ink: #e7edf4; --muted: #a2b2c4; --rule: #33465a;
+  --accent: #8db4f5; --on-accent: #10203a; --marker: #5c4e12; --ok: #6cd3a6; --warn: #f2b36b;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.7;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 48px;
+}
+.wrap { max-width: 1160px; margin: 0 auto; display: grid; gap: 24px; }
+header { display: grid; gap: 6px; }
+h1 { font-family: var(--font-display); font-size: clamp(1.9rem, 5vw, 2.8rem); line-height: 1.25; margin: 0; text-wrap: balance; }
+.lead { margin: 0; max-width: 42em; color: var(--muted); }
+.notice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; background: var(--marker); padding: 10px 14px; }
+.notice p { margin: 0; flex: 1 1 16em; min-width: 0; }
+.main { display: grid; gap: 32px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); align-items: start; }
+@media (max-width: 860px) { .main { grid-template-columns: minmax(0, 1fr); } }
+form { display: grid; gap: 28px; min-width: 0; }
+fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 14px; min-width: 0; }
+legend { font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; padding: 0; margin-bottom: 10px; }
+legend span { color: var(--accent); margin-right: .4em; font-variant-numeric: tabular-nums; }
+.field { display: grid; gap: 4px; }
+.field label { font-weight: 700; }
+.hint { font-size: .86rem; color: var(--muted); margin: 0; }
+input, select, textarea {
+  width: 100%; font: inherit; color: var(--ink); background: var(--sheet);
+  border: 1px solid var(--rule); border-radius: 3px; padding: 9px 11px;
+}
+textarea { resize: vertical; min-height: 5.4em; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; }
+button {
+  font: inherit; font-weight: 500; cursor: pointer; color: var(--accent); background: transparent;
+  border: 1px solid var(--accent); border-radius: 3px; padding: 7px 14px;
+}
+button.primary { background: var(--accent); color: var(--on-accent); }
+.only-narrow { display: none; }
+@media (max-width: 860px) { .only-narrow { display: inline-block; } }
+.output { min-width: 0; display: grid; gap: 14px; position: sticky; top: calc(16px + env(safe-area-inset-top, 0px)); max-height: calc(100vh - 32px); overflow-y: auto; padding: 2px; }
+@media (max-width: 860px) { .output { position: static; max-height: none; overflow: visible; } }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 2px solid var(--accent); }
+.tabs button { border: 0; border-radius: 3px 3px 0 0; padding: 8px 14px; color: var(--muted); }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--on-accent); }
+.panel { display: grid; gap: 14px; min-width: 0; }
+.meter { display: grid; gap: 4px; }
+.meter-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; }
+.count { font-variant-numeric: tabular-nums; font-weight: 700; }
+.bar { height: 8px; background: var(--rule); position: relative; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); }
+.bar i.over { background: var(--warn); }
+.paper {
+  background-color: var(--sheet);
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--ruled) - 1px), var(--rule) calc(var(--ruled) - 1px), var(--rule) var(--ruled));
+  font-family: var(--font-display); font-size: 1.05rem; line-height: var(--ruled);
+  padding: var(--ruled) 20px;
+  overflow-wrap: anywhere;
+}
+.paper p { margin: 0; text-indent: 1em; }
+.todo { background: var(--marker); }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.status { color: var(--muted); font-size: .9rem; margin: 0; }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.checks li { display: grid; grid-template-columns: 4.6em minmax(0, 1fr); gap: 10px; }
+.pill { font-size: .8rem; font-weight: 700; text-align: center; border: 1px solid currentColor; border-radius: 3px; height: fit-content; padding: 1px 0; }
+.pill.ok { color: var(--ok); } .pill.warn { color: var(--warn); } .pill.todo { color: var(--muted); }
+.checks strong { display: block; }
+.checks span.detail { color: var(--muted); font-size: .92rem; }
+.card { background: var(--sheet); padding: 18px 20px; display: grid; gap: 12px; }
+.card .level { font-size: .85rem; font-weight: 700; color: var(--accent); margin: 0; }
+.card .q { font-family: var(--font-display); font-size: 1.3rem; line-height: 1.6; margin: 0; overflow-wrap: anywhere; }
+details summary { cursor: pointer; color: var(--accent); font-weight: 500; }
+details p { margin: 6px 0 0; }
+.qgroup h3 { font-size: 1rem; margin: 10px 0 4px; }
+.qgroup ol { margin: 0; padding-left: 1.6em; display: grid; gap: 6px; }
+.qgroup li { overflow-wrap: anywhere; cursor: pointer; }
+.qgroup li[aria-current="true"] { font-weight: 700; color: var(--accent); }
+footer { color: var(--muted); font-size: .86rem; max-width: 60em; }
+footer p { margin: 0 0 4px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>志望理由書と面接ノート</h1>
+    <p class="lead">質問に答えると、志望理由書の下書きができます。書いた内容から、面接で突っ込まれそうな質問も作ります。</p>
+  </header>
+
+  <div class="notice" id="sampleNotice">
+    <p>いま入っているのは架空の受験生の例です。</p>
+    <button type="button" id="startBlank">消して自分で書く</button>
+  </div>
+
+  <div class="main">
+    <form id="form" autocomplete="off">
+      <div class="toolbar">
+        <button type="button" id="fillSample">例を入れる</button>
+        <button type="button" id="clearAll">すべて消す</button>
+      </div>
+    </form>
+
+    <section class="output" id="result" aria-label="結果">
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" id="tab-draft" aria-controls="panel-draft" aria-selected="true">下書き</button>
+        <button type="button" role="tab" id="tab-check" aria-controls="panel-check" aria-selected="false">チェック</button>
+        <button type="button" role="tab" id="tab-qa" aria-controls="panel-qa" aria-selected="false">面接練習</button>
+      </div>
+
+      <div class="panel" id="panel-draft" role="tabpanel" aria-labelledby="tab-draft">
+        <div class="meter" aria-live="polite">
+          <div class="meter-top"><span class="count" id="count"></span><span id="countMsg"></span></div>
+          <div class="bar"><i id="barFill"></i></div>
+        </div>
+        <div class="paper" id="paper"></div>
+        <div class="row">
+          <button type="button" class="primary" id="copy">下書きをコピー</button>
+          <p class="status" id="copyStatus" role="status"></p>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-check" role="tabpanel" aria-labelledby="tab-check" hidden>
+        <ul class="checks" id="checks"></ul>
+      </div>
+
+      <div class="panel" id="panel-qa" role="tabpanel" aria-labelledby="tab-qa" hidden>
+        <div class="card">
+          <p class="level" id="qLevel"></p>
+          <p class="q" id="qText"></p>
+          <details id="qAimBox"><summary>面接官の狙いを見る</summary><p id="qAim"></p></details>
+          <div class="row">
+            <button type="button" id="qPrev">前へ</button>
+            <button type="button" id="qNext">次へ</button>
+            <button type="button" class="primary" id="timer">60秒で話してみる</button>
+          </div>
+        </div>
+        <div class="qgroup" id="qList"></div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <p>入力した内容は外部に送信しません。下書きはこの端末のブラウザにだけ保存され、「すべて消す」で削除できます。共用の端末では使い終わったら消してください。</p>
+    <p>下書きはたたき台です。提出前に自分の言葉に直し、字数や様式は各大学の募集要項で確認してください。</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var KEY = 'shibo-note-v1';
+  var GROUPS = [
+    { title: '受験先', items: [
+      { id: 'univ', label: '大学名', single: true, ph: '〇〇大学' },
+      { id: 'faculty', label: '学部・学科', single: true, ph: '看護学部看護学科' }
+    ]},
+    { title: 'きっかけ', items: [
+      { id: 'theme', label: '大学で学びたいテーマ', single: true, hint: '「〜について学びたい」に入る言葉で書きます。', ph: '地域の医療を支える看護師の働き方' },
+      { id: 'event', label: 'そう思った出来事', hint: 'いつ、どこで、何があったかを1〜2文で。', ph: '高校2年の夏、祖父が入院し…' },
+      { id: 'feeling', label: 'そのとき感じたこと・疑問', hint: '「感動した」で終わらせず、何が引っかかったかまで書きます。', ph: '…という疑問を持ちました。' }
+    ]},
+    { title: '自分で動いたこと', items: [
+      { id: 'action', label: '調べたこと・やったこと', hint: '人数や期間などの数字があると伝わります。', ph: 'そこで県の統計を調べ…' },
+      { id: 'gap', label: 'それでも分からなかったこと', hint: 'ここが「大学で学ぶ理由」になります。', ph: 'ただ、…は自分では答えを出せませんでした。' }
+    ]},
+    { title: 'なぜこの大学か', items: [
+      { id: 'why', label: 'この大学を選んだ理由', hint: '授業名、先生、実習など、他大学では言えないことを。「〜からです。」で終えます。', ph: '△△教授のゼミで…できるからです。' },
+      { id: 'plan', label: '入学後にやること', ph: '在宅看護と病院の連携について学び…' }
+    ]},
+    { title: '卒業後', items: [
+      { id: 'future', label: '卒業後にやりたいこと', hint: '誰のどんな困りごとに関わりたいかを書きます。', ph: '地元の病院で看護師として働きながら…' }
+    ]}
+  ];
+  var SAMPLE = {
+    univ: '〇〇大学', faculty: '看護学部看護学科', limit: '400',
+    theme: '地域の医療を支える看護師の働き方',
+    event: '高校2年の夏、祖父が地元の病院に入院し、夜勤の看護師さんが二人で病棟を回っている様子を見ました。',
+    feeling: '忙しいのに祖父に声をかけ続ける姿に憧れる一方で、この働き方は長く続けられるのだろうかと疑問を持ちました。',
+    action: 'そこで県の統計を調べ、看護師長さんに話を聞きました。県北部では人口10万人あたりの看護師数が県平均より少ないと分かりました。',
+    gap: 'ただ、人を増やす以外にどんな方法が現場の負担を減らせるのかは、自分では答えを出せませんでした。',
+    why: '1年次から地域の病院で実習ができ、△△教授のゼミで看護業務の改善を研究できるからです。',
+    plan: '在宅看護と病院の連携について学び、負担を減らす仕組みを卒業研究で検証したいと考えています。',
+    future: '地元の病院で看護師として働きながら、若い人が続けられる職場づくりに取り組みたいと考えています。'
+  };
+  var IDS = [];
+  GROUPS.forEach(function (g) { g.items.forEach(function (f) { IDS.push(f.id); }); });
+
+  var $ = function (id) { return document.getElementById(id); };
+  var form = $('form');
+
+  GROUPS.forEach(function (g, i) {
+    var fs = document.createElement('fieldset');
+    var lg = document.createElement('legend');
+    var num = document.createElement('span');
+    num.textContent = String(i + 1);
+    lg.appendChild(num);
+    lg.appendChild(document.createTextNode(g.title));
+    fs.appendChild(lg);
+    g.items.forEach(function (f) {
+      var box = document.createElement('div');
+      box.className = 'field';
+      var lb = document.createElement('label');
+      lb.htmlFor = f.id;
+      lb.textContent = f.label;
+      box.appendChild(lb);
+      if (f.hint) {
+        var h = document.createElement('p');
+        h.className = 'hint';
+        h.textContent = f.hint;
+        box.appendChild(h);
+      }
+      var el = document.createElement(f.single ? 'input' : 'textarea');
+      el.id = f.id;
+      el.placeholder = f.ph || '';
+      if (f.single) el.type = 'text'; else el.rows = 3;
+      box.appendChild(el);
+      fs.appendChild(box);
+    });
+    if (i === 0) {
+      var box = document.createElement('div');
+      box.className = 'field';
+      var lb = document.createElement('label');
+      lb.htmlFor = 'limit';
+      lb.textContent = '指定の字数';
+      var sel = document.createElement('select');
+      sel.id = 'limit';
+      ['400', '600', '800', '1000', '1200'].forEach(function (n) {
+        var o = document.createElement('option');
+        o.value = n;
+        o.textContent = n + '字';
+        sel.appendChild(o);
+      });
+      box.appendChild(lb);
+      box.appendChild(sel);
+      fs.appendChild(box);
+    }
+    form.appendChild(fs);
+  });
+  var jump = document.createElement('button');
+  jump.type = 'button';
+  jump.className = 'primary only-narrow';
+  jump.textContent = '下書きを見る';
+  jump.addEventListener('click', function () { $('result').scrollIntoView(); });
+  form.appendChild(jump);
+  form.addEventListener('submit', function (e) { e.preventDefault(); });
+
+  function values() {
+    var v = {};
+    IDS.forEach(function (id) { v[id] = $(id).value.trim(); });
+    v.limit = $('limit').value;
+    return v;
+  }
+  function setValues(v) {
+    IDS.forEach(function (id) { $(id).value = v[id] || ''; });
+    $('limit').value = v.limit || '800';
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(values())); } catch (e) {}
+  }
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY)); } catch (e) { return null; }
+  }
+  function forget() {
+    try { localStorage.removeItem(KEY); } catch (e) {}
+  }
+
+  function len(s) { return Array.from(s.replace(/\s/g, '')).length; }
+  function sentence(s) { return /[。！？」]$/.test(s) ? s : s + '。'; }
+  function strip(s, lead) { return s.indexOf(lead) === 0 ? s.slice(lead.length) : s; }
+  function short(s) {
+    var first = s.split('。')[0];
+    var chars = Array.from(first);
+    return '「' + (chars.length > 26 ? chars.slice(0, 26).join('') + '…' : first) + '」';
+  }
+
+  function buildDraft(v) {
+    function slot(val, name) { return val ? { t: val } : { t: '［' + name + '］', todo: true }; }
+    function line(val, name, lead) {
+      return val ? { t: (lead || '') + sentence(lead ? strip(val, lead) : val) } : { t: '［' + name + '］', todo: true };
+    }
+    return [
+      [{ t: '私は、' }, slot(v.theme, '学びたいテーマ'), { t: 'について学びたいと考え、' }, slot(v.univ, '大学名'), slot(v.faculty, '学部・学科'), { t: 'を志望します。' }],
+      [line(v.event, 'そう思った出来事'), line(v.feeling, 'そのとき感じたこと')],
+      [line(v.action, '調べたこと・やったこと'), line(v.gap, '分からなかったこと')],
+      [line(v.why, 'この大学を選んだ理由', '貴学を選んだのは、'), line(v.plan, '入学後にやること', '入学後は、')],
+      [line(v.future, '卒業後にやりたいこと', '卒業後は、')]
+    ];
+  }
+  function plain(draft) {
+    return draft.map(function (p) {
+      return p.filter(function (s) { return !s.todo; }).map(function (s) { return s.t; }).join('');
+    }).filter(Boolean).join('\n');
+  }
+
+  function buildChecks(v, count) {
+    var limit = Number(v.limit);
+    var all = plain(buildDraft(v));
+    var out = [];
+    function add(state, title, detail) { out.push({ state: state, title: title, detail: detail }); }
+    var empty = IDS.filter(function (id) { return !v[id]; }).length;
+    if (count > limit) add('warn', '字数が' + (count - limit) + '字オーバーしています', '一番長い段落から削ってください。');
+    else if (count < limit * 0.9) add('warn', '字数はあと' + (Math.ceil(limit * 0.9) - count) + '字で9割です', '指定字数の9割以上を目安にしましょう。');
+    else add('ok', '字数は指定の9割以上です', count + '字 / ' + limit + '字');
+    add(empty ? 'todo' : 'ok', empty ? '未入力の項目が' + empty + 'つあります' : 'すべての項目に記入しました', empty ? '下書きの黄色い部分です。' : '');
+    if (!v.why) add('todo', 'この大学でしか言えない理由', '「なぜこの大学か」を書くと確認します。');
+    else if (/教授|先生|ゼミ|研究室|実習|プログラム|カリキュラム|授業|講義|センター|留学/.test(v.why)) add('ok', 'この大学ならではの要素があります', '面接では中身まで聞かれるので、内容を説明できるようにしておきましょう。');
+    else add('warn', '他の大学でも言える理由になっていませんか', '授業名、先生、ゼミ、実習など、その大学の具体名を入れましょう。');
+    if (!v.action) add('todo', '自分で動いた経験', '「調べたこと・やったこと」を書くと確認します。');
+    else if (/[0-9０-９]/.test(v.action)) add('ok', '行動に数字が入っています', '');
+    else add('warn', '行動に数字を入れられませんか', '何人に聞いたか、何か月続けたかなどを足すと具体的になります。');
+    if (!v.gap) add('todo', '大学で学ぶ必要があること', '「分からなかったこと」が大学で学ぶ理由になります。');
+    else add('ok', '大学で学ぶ理由につながる疑問があります', '');
+    var vague = ['様々', 'さまざま', 'いろいろ', '色々', '社会に貢献', 'グローバル', '幅広い', '充実', '貴重な経験', '視野を広げ', '成長したい', '人の役に立'].filter(function (w) { return all.indexOf(w) >= 0; });
+    add(vague.length ? 'warn' : 'ok', vague.length ? 'ぼんやりした言葉があります' : 'ぼんやりした言葉はありません', vague.length ? vague.join('、') + ' を具体的な内容に置き換えましょう。' : '');
+    var casual = ['なので', 'だから', 'とても', 'すごく', 'やっぱり', 'けど', 'みたいな', 'ちゃんと'].filter(function (w) { return all.indexOf(w) >= 0; });
+    add(casual.length ? 'warn' : 'ok', casual.length ? '話し言葉が混ざっています' : '話し言葉は見つかりません', casual.length ? casual.join('、') + ' を書き言葉に直しましょう。' : '');
+    var think = (all.match(/思います|思いました/g) || []).length;
+    add(think >= 3 ? 'warn' : 'ok', think >= 3 ? '「思います」が' + think + '回あります' : '文末の繰り返しは目立ちません', think >= 3 ? '「考えます」と言い換えるより、事実を言い切る文に変えると強くなります。' : '');
+    return out;
+  }
+
+  function buildQuestions(v) {
+    var t = v.theme || 'このテーマ', f = v.faculty || 'この学部', u = v.univ || 'この大学';
+    var q = [];
+    function add(level, text, aim) { q.push({ level: level, text: text, aim: aim }); }
+    add('まず聞かれる', '1分で志望理由を話してください。', '書類の丸読みではなく、要点を自分の言葉で話せるかを見ています。');
+    add('まず聞かれる', t + 'に関心を持ったきっかけを教えてください。', '書類と話が一致しているか、本人の経験かを見ています。');
+    add('まず聞かれる', 'なぜ' + f + 'なのですか。近い分野の別の学部ではいけませんか。', '学部の違いを理解して選んでいるかを見ています。');
+    add('まず聞かれる', 'なぜ' + u + 'なのですか。ほかに受ける大学と比べて教えてください。', 'どの大学にも言える答えでないかを見ています。');
+    if (v.event) add('深掘り', short(v.event) + 'とありますが、そのとき具体的に何を考えましたか。', '出来事ではなく、本人の思考を聞いています。');
+    add('深掘り', 'その経験がなくても、今の進路を選んでいたと思いますか。', '動機の深さと、自分を客観視できるかを見ています。');
+    if (v.action) add('深掘り', short(v.action) + 'の中で、一番予想と違ったことは何ですか。', '本当に自分でやった人は、具体的な驚きを話せます。');
+    if (v.gap) add('深掘り', short(v.gap) + 'について、今のあなたの仮説を聞かせてください。', '「分かりません」で止まらず考えられるかを見ています。');
+    add('深掘り', t + 'について、最近読んだ本や記事、気になったニュースはありますか。', '関心が書類の上だけでないかを確かめています。');
+    if (v.why) add('深掘り', short(v.why) + 'とありますが、具体的にどんな内容か説明できますか。', 'パンフレットを写しただけでないかを確かめています。');
+    add('答えにくい', t + 'について、あなたと反対の意見を持つ人は何と言うと思いますか。', '別の立場から物事を見られるかを確かめています。');
+    if (v.future) add('答えにくい', short(v.future) + 'は、大学に行かなくてもできるのではありませんか。', '大学で学ぶ必要性を説明できるかを見ています。');
+    add('答えにくい', '入学後に' + t + 'への興味がなくなったら、どうしますか。', '想定外の質問への落ち着きと、学ぶ姿勢を見ています。');
+    add('答えにくい', '不合格だったらどうしますか。', '進路を本気で考えているか、動揺せず話せるかを見ています。');
+    add('答えにくい', '書類に書かなかったことで、伝えておきたいことはありますか。', '用意した話以外の、本人らしさを見ています。');
+    add('答えにくい', '最後に、こちらに質問はありますか。', '大学を調べた上での関心があるかを見ています。');
+    return q;
+  }
+
+  var qIndex = 0, questions = [];
+  function showQuestion() {
+    if (qIndex >= questions.length) qIndex = 0;
+    var q = questions[qIndex];
+    $('qLevel').textContent = q.level + '（' + (qIndex + 1) + ' / ' + questions.length + '）';
+    $('qText').textContent = q.text;
+    $('qAim').textContent = q.aim;
+    Array.prototype.forEach.call($('qList').querySelectorAll('li'), function (li) {
+      if (Number(li.dataset.i) === qIndex) li.setAttribute('aria-current', 'true');
+      else li.removeAttribute('aria-current');
+    });
+  }
+  function moveQuestion(i) {
+    qIndex = (i + questions.length) % questions.length;
+    $('qAimBox').open = false;
+    stopTimer();
+    showQuestion();
+  }
+  function renderList() {
+    var box = $('qList');
+    box.textContent = '';
+    ['まず聞かれる', '深掘り', '答えにくい'].forEach(function (level) {
+      var h = document.createElement('h3');
+      h.textContent = level;
+      var ol = document.createElement('ol');
+      questions.forEach(function (q, i) {
+        if (q.level !== level) return;
+        var li = document.createElement('li');
+        li.textContent = q.text;
+        li.dataset.i = i;
+        li.addEventListener('click', function () { moveQuestion(i); });
+        ol.appendChild(li);
+      });
+      box.appendChild(h);
+      box.appendChild(ol);
+    });
+  }
+
+  var tick = null, left = 0;
+  function stopTimer() {
+    if (tick) clearInterval(tick);
+    tick = null;
+    $('timer').textContent = '60秒で話してみる';
+  }
+  $('timer').addEventListener('click', function () {
+    if (tick) { stopTimer(); return; }
+    left = 60;
+    $('timer').textContent = '残り60秒（止める）';
+    tick = setInterval(function () {
+      left -= 1;
+      if (left <= 0) { clearInterval(tick); tick = null; $('timer').textContent = '時間です。もう一度話す'; return; }
+      $('timer').textContent = '残り' + left + '秒（止める）';
+    }, 1000);
+  });
+  $('qPrev').addEventListener('click', function () { moveQuestion(qIndex - 1); });
+  $('qNext').addEventListener('click', function () { moveQuestion(qIndex + 1); });
+
+  var currentText = '';
+  function update() {
+    var v = values();
+    var draft = buildDraft(v);
+    var paper = $('paper');
+    paper.textContent = '';
+    draft.forEach(function (segs) {
+      var p = document.createElement('p');
+      segs.forEach(function (s) {
+        var span = document.createElement('span');
+        span.textContent = s.t;
+        if (s.todo) span.className = 'todo';
+        p.appendChild(span);
+      });
+      paper.appendChild(p);
+    });
+    currentText = plain(draft);
+    var count = len(currentText), limit = Number(v.limit);
+    $('count').textContent = count + ' / ' + limit + '字';
+    $('countMsg').textContent = count > limit ? (count - limit) + '字オーバー' : count >= limit * 0.9 ? '目安の範囲です' : 'あと' + (Math.ceil(limit * 0.9) - count) + '字で9割';
+    var fill = $('barFill');
+    fill.style.width = Math.min(100, count / limit * 100) + '%';
+    fill.className = count > limit ? 'over' : '';
+
+    var checks = buildChecks(v, count), ul = $('checks');
+    ul.textContent = '';
+    var labels = { ok: 'OK', warn: '見直す', todo: '未記入' };
+    checks.forEach(function (c) {
+      var li = document.createElement('li');
+      var pill = document.createElement('span');
+      pill.className = 'pill ' + c.state;
+      pill.textContent = labels[c.state];
+      var body = document.createElement('div');
+      var st = document.createElement('strong');
+      st.textContent = c.title;
+      body.appendChild(st);
+      if (c.detail) {
+        var d = document.createElement('span');
+        d.className = 'detail';
+        d.textContent = c.detail;
+        body.appendChild(d);
+      }
+      li.appendChild(pill);
+      li.appendChild(body);
+      ul.appendChild(li);
+    });
+    var warns = checks.filter(function (c) { return c.state === 'warn'; }).length;
+    $('tab-check').textContent = warns ? 'チェック（見直し' + warns + '件）' : 'チェック';
+
+    questions = buildQuestions(v);
+    $('tab-qa').textContent = '面接練習（' + questions.length + '問）';
+    renderList();
+    showQuestion();
+  }
+
+  function setNotice(on) { $('sampleNotice').hidden = !on; }
+  function fillBlank() {
+    setValues({});
+    forget();
+    setNotice(false);
+    moveQuestion(0);
+    update();
+  }
+
+  form.addEventListener('input', function () { setNotice(false); save(); update(); });
+  $('startBlank').addEventListener('click', function () { fillBlank(); $('univ').focus(); });
+  $('fillSample').addEventListener('click', function () {
+    setValues(SAMPLE);
+    forget();
+    setNotice(true);
+    update();
+  });
+  var armed = null;
+  $('clearAll').addEventListener('click', function () {
+    var btn = $('clearAll');
+    if (armed) {
+      clearTimeout(armed);
+      armed = null;
+      btn.textContent = 'すべて消す';
+      fillBlank();
+      return;
+    }
+    btn.textContent = 'もう一度押すと消えます';
+    armed = setTimeout(function () { armed = null; btn.textContent = 'すべて消す'; }, 3000);
+  });
+
+  $('copy').addEventListener('click', function () {
+    var status = $('copyStatus');
+    function fallback() {
+      var r = document.createRange();
+      r.selectNodeContents($('paper'));
+      var s = window.getSelection();
+      s.removeAllRanges();
+      s.addRange(r);
+      status.textContent = '文章を選択しました。そのままコピーしてください。';
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(currentText).then(function () { status.textContent = 'コピーしました。'; }, fallback);
+    } else {
+      fallback();
+    }
+  });
+
+  var tabs = ['draft', 'check', 'qa'];
+  tabs.forEach(function (name) {
+    $('tab-' + name).addEventListener('click', function () {
+      tabs.forEach(function (n) {
+        $('tab-' + n).setAttribute('aria-selected', String(n === name));
+        $('panel-' + n).hidden = n !== name;
+      });
+    });
+  });
+
+  var saved = load();
+  if (saved) { setValues(saved); setNotice(false); }
+  else { setValues(SAMPLE); setNotice(true); }
+  update();
+})();
+</script>
+</body>
+</html>
