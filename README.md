@@ -2,7 +2,7 @@
 
 質問に答えると志望理由書の下書きができ、その内容から面接で聞かれそうな質問を作る無料ツールです。
 
-公開ページ: https://0alab.github.io/education-site/
+公開ページ: https://0alab.github.io/sinro-site/
 
 ## 方針
 
